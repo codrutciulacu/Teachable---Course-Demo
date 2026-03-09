@@ -1,12 +1,13 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import jest from jest;
 import App from "../src/App.jsx";
+import '@testing-library/jest-dom';
+import { waitFor } from "@testing-library/react";
 
 describe("App", () => {
 
   beforeEach(() => {
-    global.fetch = jest.fn(() => {
+    global.fetch = vi.fn(() => {
       return Promise.resolve({
         json: () => Promise.resolve({ results: [{ name: { first: "Codrut" } }] })
       })
@@ -44,18 +45,21 @@ describe("App", () => {
     render(<App />);
 
     const nameTextBox = screen.getByRole("textbox");
-    const nameDiv = screen.getByText("Loading...");
+    const nameDiv = screen.getAllByText("Loading...");
 
     await userEvent.type(nameTextBox, "Codrut")
 
-    expect(nameDiv).toHaveTextContent("Codrut")
+    expect(nameDiv[0]).toHaveTextContent("Codrut")
   })
 
   it("should display mocked name", async () => {
     render(<App />);
 
-    const nameDiv = screen.getAllByText("Loading...");
 
-    expect(nameDiv).toHaveTextContent("Codrut")
+    await waitFor(() => {
+      const nameDiv = screen.getByText("Codrut");
+
+      expect(nameDiv).toBeInTheDocument()
+    });
   })
 });
